@@ -5,7 +5,8 @@ import torchvision.transforms as transforms
 
 
 # Device configuration
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')  #checking if GPU is available in set of available devices
+#model.to(device)  uncomment for transfering all model parameters to gpu
 
 # Hyper-parameters 
 input_size = 784
@@ -26,6 +27,9 @@ test_dataset = torchvision.datasets.MNIST(root='../../data',
                                           transform=transforms.ToTensor())
 
 # Data loader
+# Also known as data generator
+# useful because it automatically generates batches in the training loop and takes care of shuffling
+# we shuffle the train data and not test data because we do not want train data to learn correlation between the data points which can decrease accuracy
 train_loader = torch.utils.data.DataLoader(dataset=train_dataset, 
                                            batch_size=batch_size, 
                                            shuffle=True)
@@ -38,9 +42,9 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
 class NeuralNet(nn.Module):
     def __init__(self, input_size, hidden_size, num_classes):
         super(NeuralNet, self).__init__()
-        self.fc1 = nn.Linear(input_size, hidden_size) 
-        self.relu = nn.ReLU()
-        self.fc2 = nn.Linear(hidden_size, num_classes)  
+        self.fc1 = nn.Linear(input_size, hidden_size)   #a1 = W1t*x+b1
+        self.relu = nn.ReLU()				#z1 = sigma(a1)
+        self.fc2 = nn.Linear(hidden_size, num_classes)  #don't need to do ypred = softmax(a2)
     
     def forward(self, x):
         out = self.fc1(x)
@@ -59,7 +63,7 @@ total_step = len(train_loader)
 for epoch in range(num_epochs):
     for i, (images, labels) in enumerate(train_loader):  
         # Move tensors to the configured device
-        images = images.reshape(-1, 28*28).to(device)
+        images = images.reshape(-1, 28*28).to(device)  #converting n*28*28 into 2-d array and assgining whatever value is appropriate to the data
         labels = labels.to(device)
         
         # Forward pass
@@ -71,7 +75,7 @@ for epoch in range(num_epochs):
         loss.backward()
         optimizer.step()
         
-        if (i+1) % 100 == 0:
+        if (i+1) % 100 == 0:                          #for visualising store losses in a list
             print ('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}' 
                    .format(epoch+1, num_epochs, i+1, total_step, loss.item()))
 
@@ -81,12 +85,12 @@ with torch.no_grad():
     correct = 0
     total = 0
     for images, labels in test_loader:
-        images = images.reshape(-1, 28*28).to(device)
+        images = images.reshape(-1, 28*28).to(device)            #reshape inputs and transfer data to gpu
         labels = labels.to(device)
         outputs = model(images)
-        _, predicted = torch.max(outputs.data, 1)
-        total += labels.size(0)
-        correct += (predicted == labels).sum().item()
+        _, predicted = torch.max(outputs.data, 1)                #get predictions, torch.max returns both max and argmax
+        total += labels.size(0)                                  #update counts
+        correct += (predicted == labels).sum().item()            # .item() for bringing it back to python land
 
     print('Accuracy of the network on the 10000 test images: {} %'.format(100 * correct / total))
 

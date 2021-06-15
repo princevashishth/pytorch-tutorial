@@ -32,13 +32,13 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
                                           batch_size=batch_size, 
                                           shuffle=False)
 
-# Convolutional neural network (two convolutional layers)
-class ConvNet(nn.Module):
+# Convolutional neural network (two convolutional layers and 1 final fully connected layer)
+class ConvNet(nn.Module):                                             #inherit from nn.Module class
     def __init__(self, num_classes=10):
-        super(ConvNet, self).__init__()
+        super(ConvNet, self).__init__()                               # Call the parent class constructor
         self.layer1 = nn.Sequential(
             nn.Conv2d(1, 16, kernel_size=5, stride=1, padding=2),
-            nn.BatchNorm2d(16),
+            nn.BatchNorm2d(16),                                      # Adding batch normalization layer
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2))
         self.layer2 = nn.Sequential(
@@ -48,11 +48,11 @@ class ConvNet(nn.Module):
             nn.MaxPool2d(kernel_size=2, stride=2))
         self.fc = nn.Linear(7*7*32, num_classes)
         
-    def forward(self, x):
+    def forward(self, x):          # Making easy to call each layer using forward function. This is where we actually pass our input
         out = self.layer1(x)
         out = self.layer2(out)
-        out = out.reshape(out.size(0), -1)
-        out = self.fc(out)
+        out = out.reshape(out.size(0), -1) #Helps to flatten the image into a feature vector. Not necessary to specify both the dimensions.out.size(0)=N
+        out = self.fc(out)                 # -1 in reshape function because pytorch will automatically calculate leftover dimensions 
         return out
 
 model = ConvNet(num_classes).to(device)
