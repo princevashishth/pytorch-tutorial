@@ -31,7 +31,7 @@ num_batches = ids.size(1) // seq_length
 class RNNLM(nn.Module):
     def __init__(self, vocab_size, embed_size, hidden_size, num_layers):
         super(RNNLM, self).__init__()
-        self.embed = nn.Embedding(vocab_size, embed_size)
+        self.embed = nn.Embedding(vocab_size, embed_size)  #embedding layer
         self.lstm = nn.LSTM(embed_size, hidden_size, num_layers, batch_first=True)
         self.linear = nn.Linear(hidden_size, vocab_size)
         
